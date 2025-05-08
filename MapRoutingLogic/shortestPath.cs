@@ -108,9 +108,32 @@ namespace MapRoutingLogic
         }
 
 
+        public static List<int> constructPath(int bestEnd)
+        {
+            int[] parents = result.Parents;
+            var finalPath = new List<int>();
+
+            if (parents[bestEnd] == -1)
+                return null; //no path
+
+            int currentNode = bestEnd;
+            while (currentNode != -1)
+            {
+                finalPath.Add(currentNode);
+                currentNode = previousNodes[currentNode];
+            }
+            //add the first node with its parent = -1
+            finalPath.Add(currentNode);
+
+            finalPath.Reverse();
+            return finalPath;
+
+        }
 
 
-        /*this function we've token frim chatGPT together ya shahd if it will help */
+
+
+        /*this function we've taken frim chatGPT together ya shahd if it will help */
 
         //public static List<int> GetShortestPath(int endNode, int[] previousNodes)
         //{
