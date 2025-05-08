@@ -10,104 +10,124 @@ namespace MapRoutingLogic
     public class Result
     {
         public double[] Distances { set; get; }
-        public int[] parents { set; get; }
+        public int[] Parents { set; get; }
     }
    internal class shortestPath
     {
         //function startpoints endpoints 
-        public static findShortest(Map graph,)
+        List<Node> nodes = new List<Node>();
+        Query query;
+
+        Dictionary<int, double> StartNodes = new Dictionary<int, double>();
+        Dictionary<int, double> EndNodes = new Dictionary<int, double>();
+        Result result;
+
+        public shortestPath(Dictionary<int, double> StartNodes, Dictionary<int, double> EndNodes)
         {
-            var potentialNodes = new potentialNoads();
-            var (StartNodes, EndNodes) = potentialNodes.findValidNodes(nodes, query);
-
-
+            this.StartNodes = StartNodes;
+            this.EndNodes = EndNodes;
+            this.result = new Result();
         }
 
+        //we might need it in testing
+        //public static void Ge
+        //{
+        //    var potentialNodes = new potentialNoads();
+        //    var (StartNodes, EndNodes) = potentialNodes.findValidNodes(nodes, query);
 
-        public static Result Dijkstra(Map graph, int SNode)
+
+        //}
+
+
+        public  Result Dijkstra(Map graph)
         {
-            int nodesCount=graph.Intersections.Count();
-            double[] distances = new double[nodesCount];
-            int[] previousNodes = new int[nodesCount];
+            int nodesCount = graph.Intersections.Count();
+            result.Distances = new double[nodesCount];
+            result.Parents = new int[nodesCount];
 
             for (int i = 0; i < nodesCount; i++)
             {
-                distances[i] = double.PositiveInfinity;
-                previousNodes[i] = -1;
+                result.Distances[i] = double.PositiveInfinity;
+                result.Parents[i] = -1;
             }
-            //assign start to 0
-            distances[SNode] = 0;
 
-            // Priority queue (min-heap) of (distance, node)
-            var priorityQueue = new PriorityQueue<(double distance, int node), double>();
+            var priorityQueue = new PriorityQueue<(int node, double distance), double>();
+            foreach (var pair in StartNodes)
+            {
+                result.Distances[pair.Key] = pair.Value;
+                priorityQueue.Enqueue((pair.Key, pair.Value), pair.Value);
+            }
 
-            priorityQueue.Enqueue((0, SNode), 0);
 
             while (priorityQueue.Count > 0)
             {
-                var current = priorityQueue.Dequeue(); //min distance
+                var current = priorityQueue.Dequeue();
                 double currentDistance = current.distance;
                 int currentNode = current.node;
 
-                // Skip if we already found a better path
-                if (currentDistance > distances[currentNode])
+                //if current > distance of node so skip
+                if (currentDistance > result.Distances[currentNode])
                     continue;
 
-                // Explore neighbors
+           
+                // relax neighbors
                 foreach (Road road in graph.Roads[currentNode])
                 {
                     int neighbor = road.DestinationIntersection;
                     double newDistance = currentDistance + road.Time;
 
-                    if (newDistance < distances[neighbor])
+                    if (newDistance < result.Distances[neighbor])
                     {
-                        distances[neighbor] = newDistance;
-                        previousNodes[neighbor] = currentNode;
-                        priorityQueue.Enqueue((newDistance, neighbor), newDistance);
+                        result.Distances[neighbor] = newDistance;
+                        result.Parents[neighbor] = currentNode;
+                        priorityQueue.Enqueue((neighbor, newDistance), newDistance);
                     }
                 }
             }
 
-            return new Result { Distances = distances, parents = previousNodes };
+            return result;
         }
 
-        public static List<int> GetShortestPath(int endNode, int[] previousNodes)
+        public (int,double) GetBestEndNode()
         {
-            var path = new List<int>();
-            if (previousNodes[endNode] == -1)
-                return path; // No path exists
-
-            int current = endNode;
-            while (current != -1)
+            int bestEnd = -1;
+            double min = double.PositiveInfinity;
+            foreach(var pair in EndNodes)
             {
-                path.Add(current);
-                current = previousNodes[current];
+                //d[endnode]+walkingTime(value)
+                double total= result.Distances[pair.Key]+pair.Value;
+                if(total< min)
+                {
+                    min=total;
+                    bestEnd= pair.Key;
+                }
             }
 
-            path.Reverse();
-            return path;
+            //here we return best End node and it's total with walking time
+            return (bestEnd, min);
         }
 
 
 
 
+        /*this function we've token frim chatGPT together ya shahd if it will help */
 
+        //public static List<int> GetShortestPath(int endNode, int[] previousNodes)
+        //{
+        //    var path = new List<int>();
+        //    if (previousNodes[endNode] == -1)
+        //        return path; // No path exists
 
+        //    int current = endNode;
+        //    while (current != -1)
+        //    {
+        //        path.Add(current);
+        //        current = previousNodes[current];
+        //    }
 
-        //input graph,startpoints,endp
-        //time,path
-        //graph
-        Map Graph =new Map();
-        List<Node> nodes=new List<Node>();
-        Query query;
-        Dictionary<int, double>  StartNodes = new Dictionary<int, double>();
-        Dictionary<int, double>  EndNodes = new Dictionary<int, double>();
-        public void SomeMethod()
-        {
-            
-        }
-
-       
+        //    path.Reverse();
+        //    return path;
+        //}
 
 
 
