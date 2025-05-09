@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -49,7 +50,7 @@ namespace MapRoutingLogic
             return map;
         }
 
-        public List<Query> BuildQuery(string queryFile)
+        public List<Query> LoadQueries(string queryFile)
         {
             string content = String.Join(" ", File.ReadAllLines(queryFile));
             string[] parts = content.Split(new[] { ' ' },
@@ -68,37 +69,115 @@ namespace MapRoutingLogic
                                         Convert.ToDouble(parts[k + 4])
                             ));
             }
-            Console.WriteLine("_________Queries________\n");
-            foreach(var q in queries)
-            {
-                Console.WriteLine(q);
-            }
-            Console.WriteLine("\n_________EDN________\n\n");
+
+            /*FOR DEBUGGING*/
+            //Console.WriteLine("_________Queries________\n");
+            //foreach(var q in queries)
+            //{
+            //    Console.WriteLine(q);
+            //}
+            //Console.WriteLine("\n_________EDN________\n\n");
+
             return queries;
         }
+
+        public List<Output> LoadActualOutputs(string OutputFile, int numOfOutputs)
+        {
+            IEnumerable<string> lines = File.ReadLines(OutputFile);
+
+            List<Output> outputs = new List<Output>(numOfOutputs);
+
+            for(int i=0;i<lines.Count()-2;)
+            {
+                if(string.IsNullOrWhiteSpace(lines.ElementAt(i)))
+                {
+                    i++;
+                    continue;
+                }
+                if (lines.ElementAt(i).Contains("ms"))
+                {
+                    break;
+                }
+
+                Output output = new Output();
+                output.IdOfIntersections = lines.ElementAt(i)
+                                                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                .Select(x => Convert.ToInt32(x)).ToList();
+
+                output.shortestTime = Convert.ToDouble(
+                                                        lines.ElementAt(i + 1)
+                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                        .ElementAt(0)
+                                                      );
+
+                output.shortestDistance = Convert.ToDouble(
+                                                        lines.ElementAt(i + 2)
+                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                        .ElementAt(0)
+                                                      );
+
+                output.TotalWalkingDistance = Convert.ToDouble(
+                                                        lines.ElementAt(i + 3)
+                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                        .ElementAt(0)
+                                                      );
+
+                output.TotalVehicleDistance = Convert.ToDouble(
+                                                        lines.ElementAt(i + 4)
+                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                        .ElementAt(0)
+                                                      );
+
+                i = i + 5;
+                outputs.Add(output);
+            }
+
+
+            // For Debugging
+            Console.WriteLine("\n___________Start________\n");
+            //foreach(var o in outputs)
+            //{
+            //    Console.WriteLine(o);
+            //    Console.WriteLine("**********************");
+            //}
+            return outputs;
+        }
+        
+        public List<Output> ClaculateOutput(in TestCase testCase)
+        {
+            List<Output> OutputResult = new List<Output>();
+
+            return OutputResult;
+        }
+
+        
         public void SampleCases()
         {
             // 1. load input files
-            string InputFolder = @"..\..\..\TEST CASES\[1] Sample Cases\Input\";
-            var mapPathes = Directory.EnumerateFiles(InputFolder, "map*.*", SearchOption.AllDirectories);
-            foreach (var file in mapPathes)
+            string InputFolder = @"..\..\..\TEST CASES\[1] Sample Cases\";
+            var mapPathes = Directory.EnumerateFiles(InputFolder, "map*.*", SearchOption.AllDirectories).ToList();
+            var queryPathes = Directory.EnumerateFiles(InputFolder, "que*.*", SearchOption.AllDirectories).ToList();
+            var OutputPathes = Directory.EnumerateFiles(InputFolder, "output*.*", SearchOption.AllDirectories).ToList();
+
+            List< TestCase> TestCases = new List<TestCase>();
+            for(int i=0;i<mapPathes.Count();i++)
             {
-                // Build map
-                Map map = BuildMap(file);
+                TestCase testCase = new TestCase();
+                // map of test case
+                testCase.TestMap = BuildMap(mapPathes[i]);
+
+                // queires of test case;
+
+                testCase.Queries = LoadQueries(queryPathes[i]);
+
+                // actual outputs 
+                testCase.Outputs = LoadActualOutputs(OutputPathes[i], testCase.Queries.Count);
+
+                // Calculate Our Output
+            
+            
             }
 
-            // 2. load quiries files
-
-            var queryPathes = Directory.EnumerateFiles(InputFolder, "que*.*", SearchOption.AllDirectories);
-            foreach(var p in queryPathes)
-            {
-                Console.WriteLine("query " + p);
-            }
-            List<List<Query>> QueriesForEveryMap = new List<List<Query>>();
-            foreach(var queryFile in queryPathes)
-            {
-                QueriesForEveryMap.Add(BuildQuery(queryFile));
-            }
 
             // 3. load output files
 
