@@ -18,7 +18,7 @@ namespace MapRoutingLogic
 
         }
         // evaluate [1] Sample Cases
-        public Map BuildMap(string mapfile)
+        public Map LoadMap(string mapfile)
         {
             string content = String.Join(" ",File.ReadAllLines(mapfile));
             string[] parts = content.Split(new[] { ' ' },
@@ -81,75 +81,124 @@ namespace MapRoutingLogic
             return queries;
         }
 
-        public List<Output> LoadActualOutputs(string OutputFile, int numOfOutputs)
+        public void LoadActualOutputs(ref TestCase testCase,string OutputFile, int numOfOutputs)
         {
-            IEnumerable<string> lines = File.ReadLines(OutputFile);
+            List<string> lines = File.ReadLines(OutputFile).ToList();
 
-            List<Output> outputs = new List<Output>(numOfOutputs);
-
-            for(int i=0;i<lines.Count()-2;)
+            int sz = lines.Count();
+            for(int i=0;i<sz-2;)
             {
-                if(string.IsNullOrWhiteSpace(lines.ElementAt(i)))
+                if(string.IsNullOrWhiteSpace(lines[i]))
                 {
                     i++;
                     continue;
                 }
-                if (lines.ElementAt(i).Contains("ms"))
+                if (lines[i].Contains("ms"))
                 {
                     break;
                 }
 
                 Output output = new Output();
-                output.IdOfIntersections = lines.ElementAt(i)
+                output.IdOfIntersections = lines[i]
                                                 .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                 .Select(x => Convert.ToInt32(x)).ToList();
 
                 output.shortestTime = Convert.ToDouble(
-                                                        lines.ElementAt(i + 1)
+                                                        lines[i+1]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
                 output.shortestDistance = Convert.ToDouble(
-                                                        lines.ElementAt(i + 2)
+                                                        lines[i + 2]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
                 output.TotalWalkingDistance = Convert.ToDouble(
-                                                        lines.ElementAt(i + 3)
+                                                        lines[i + 3]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
                 output.TotalVehicleDistance = Convert.ToDouble(
-                                                        lines.ElementAt(i + 4)
+                                                        lines[i+4]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
                 i = i + 5;
-                outputs.Add(output);
+                testCase.ActualOutputs.Add(output);
             }
+
+
+            testCase.ActualTotalExecNoIO = Convert.ToDouble(
+                                                        lines[sz - 3]
+                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                        .ElementAt(0)
+                                                      );
+
+
+            testCase.ActualTotalExec = Convert.ToDouble(
+                                                        lines[sz - 1]
+                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                        .ElementAt(0)
+                                                      );
 
 
             // For Debugging
             Console.WriteLine("\n___________Start________\n");
-            //foreach(var o in outputs)
-            //{
-            //    Console.WriteLine(o);
-            //    Console.WriteLine("**********************");
-            //}
-            return outputs;
+            foreach (var o in testCase.ActualOutputs)
+            {
+                Console.WriteLine(o);
+                
+                Console.WriteLine("**********************");
+            }
+            Console.WriteLine($"-------------------------- \n" +
+                              $"| Exec with no IO = {testCase.TotalExecNoIO}        \n|" +
+                              $"| Exec IO = {testCase.ActualTotalExec}        \n|" +
+                              $"---------------------------\n");
         }
         
-        public List<Output> ClaculateOutput(in TestCase testCase)
+        public void ClaculateOutput(ref TestCase testCase)
         {
             List<Output> OutputResult = new List<Output>();
 
-            return OutputResult;
-        }
+            for(int i = 0; i < testCase.Queries.Count(); i++)
+            {
+                /*
+                 1. path
+                2. shortestTime
+                3. shortest Distance
+                4. TotalWalkingDistance
+                5. TotalvehicleDistance
+                 */
 
+                testCase.Outputs.Add(new Output()
+                {
+                    IdOfIntersections = {1,2,3},
+                    shortestTime=0,
+                    shortestDistance=0,
+                    TotalWalkingDistance = 0,
+                    TotalVehicleDistance = 0,
+                }); // replace it by calling shortest path method
+                
+            }
+
+            // IO time
+            // time without IO (in for loop)
+
+        }
+        public void CompareResult(TestCase testCase)
+        {
+            int sz = testCase.ActualOutputs.Count();
+            for (int i = 0; i < sz; i++)
+            {
+                string message = "";
+                var result = testCase.Outputs[i].Equals(testCase.ActualOutputs[i], ref message);
+                Console.WriteLine($"Result of Output {i + 1} = {result}\n{message}\n");
+            }
+        }
         
         public void SampleCases()
         {
@@ -162,30 +211,38 @@ namespace MapRoutingLogic
             List< TestCase> TestCases = new List<TestCase>();
             for(int i=0;i<mapPathes.Count();i++)
             {
+                var watchWithIO = System.Diagnostics.Stopwatch.StartNew();
+
                 TestCase testCase = new TestCase();
                 // map of test case
-                testCase.TestMap = BuildMap(mapPathes[i]);
+                testCase.TestMap = LoadMap(mapPathes[i]);
 
                 // queires of test case;
 
                 testCase.Queries = LoadQueries(queryPathes[i]);
 
                 // actual outputs 
-                testCase.Outputs = LoadActualOutputs(OutputPathes[i], testCase.Queries.Count);
+                LoadActualOutputs(ref testCase,OutputPathes[i], testCase.Queries.Count());
 
                 // Calculate Our Output
-            
-            
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+
+                ClaculateOutput(ref testCase);
+
+                watch.Stop();
+                testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
+                Console.WriteLine("Execution Time = "+testCase.TotalExecNoIO);
+
+
+                watchWithIO.Stop();
+                testCase.TotalExec = watchWithIO.ElapsedMilliseconds;
+                
+                Console.WriteLine("Execution Time With IO = "+testCase.TotalExec);
+
+
+                CompareResult(testCase);
+
             }
-
-
-            // 3. load output files
-
-            // 4. build graph
-
-            // 5. loop on quiries and calculate result and save in array of output object
-
-            // 6. compare every output with acutal output
         }
 
         // evaluate [2] Medium Cases
