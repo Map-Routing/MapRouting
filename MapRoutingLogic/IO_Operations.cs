@@ -147,17 +147,17 @@ namespace MapRoutingLogic
 
 
             // For Debugging
-            Console.WriteLine("\n___________Start________\n");
-            foreach (var o in testCase.ActualOutputs)
-            {
-                Console.WriteLine(o);
+            //Console.WriteLine("\n___________Start________\n");
+            //foreach (var o in testCase.ActualOutputs)
+            //{
+            //    Console.WriteLine(o);
                 
-                Console.WriteLine("**********************");
-            }
-            Console.WriteLine($"-------------------------- \n" +
-                              $"| Exec with no IO = {testCase.TotalExecNoIO}        \n|" +
-                              $"| Exec IO = {testCase.ActualTotalExec}        \n|" +
-                              $"---------------------------\n");
+            //    Console.WriteLine("**********************");
+            //}
+            //Console.WriteLine($"-------------------------- \n" +
+            //                  $"| Exec with no IO = {testCase.TotalExecNoIO}        \n|" +
+            //                  $"| Exec IO = {testCase.ActualTotalExec}        \n|" +
+            //                  $"---------------------------\n");
         }
         
         public void ClaculateOutput(ref TestCase testCase)
@@ -200,14 +200,35 @@ namespace MapRoutingLogic
             }
         }
         
-        public void SampleCases()
+        public void RunTestCases()
         {
-            // 1. load input files
-            string InputFolder = @"..\..\..\TEST CASES\[1] Sample Cases\";
-            var mapPathes = Directory.EnumerateFiles(InputFolder, "map*.*", SearchOption.AllDirectories).ToList();
-            var queryPathes = Directory.EnumerateFiles(InputFolder, "que*.*", SearchOption.AllDirectories).ToList();
-            var OutputPathes = Directory.EnumerateFiles(InputFolder, "output*.*", SearchOption.AllDirectories).ToList();
+            string sampleCases = @"[1] Sample Cases\";
+            string Medium = @"[2] Medium Cases\";
+            string Large = @"[3] Large Cases\";
 
+            string InputFolder = @"..\..\..\TEST CASES\";
+            Console.WriteLine($"Choose Number of TestCases \n{sampleCases}\n{Medium}\n{Large}");
+
+            string choice = Console.ReadLine() ;
+            
+            switch (choice)
+            {
+                case "1":
+                    InputFolder += sampleCases;
+                    break;
+                case "2":
+                    InputFolder += Medium;
+                    break;
+                case "3":
+                    InputFolder += Large;
+                    break;
+
+                default: return;
+            }
+            var mapPathes = Directory.EnumerateFiles(InputFolder, "*ap*.*", SearchOption.AllDirectories).ToList();
+            var queryPathes = Directory.EnumerateFiles(InputFolder, "*ries*.*", SearchOption.AllDirectories).ToList();
+            var OutputPathes = Directory.EnumerateFiles(InputFolder, "*utput*.*", SearchOption.AllDirectories).ToList();
+            
             List< TestCase> TestCases = new List<TestCase>();
             for(int i=0;i<mapPathes.Count();i++)
             {
@@ -233,7 +254,6 @@ namespace MapRoutingLogic
                 testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
                 Console.WriteLine("Execution Time = "+testCase.TotalExecNoIO);
 
-
                 watchWithIO.Stop();
                 testCase.TotalExec = watchWithIO.ElapsedMilliseconds;
                 
@@ -244,12 +264,6 @@ namespace MapRoutingLogic
 
             }
         }
-
-        // evaluate [2] Medium Cases
-
-        // [3] Large Cases
-
-        // [4] BONUS Test Cases
 
     }
 }
