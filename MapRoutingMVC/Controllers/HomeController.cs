@@ -1,6 +1,7 @@
 using MapRoutingMVC.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.IO;
 
 namespace MapRoutingMVC.Controllers
 {
@@ -18,8 +19,10 @@ namespace MapRoutingMVC.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public IActionResult Privacy(List<IFormFile> files)
         {
+
+
             return View();
         }
 

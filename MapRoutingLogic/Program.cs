@@ -12,7 +12,8 @@ namespace MapRoutingLogic
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            IO_Operations iO_Operations = new IO_Operations();
+            iO_Operations.SampleCases();
         }
     }
 }
