@@ -15,8 +15,8 @@ namespace MapRoutingLogic
    internal class shortestPath
     {
         //function startpoints endpoints 
-        List<Intersection> nodes = new List<Intersection>();
-        Query query;
+        //List<Intersection> nodes = new List<Intersection>();
+        //Query query;
 
         Dictionary<int, double> StartNodes = new Dictionary<int, double>();
         Dictionary<int, double> EndNodes = new Dictionary<int, double>();
@@ -30,9 +30,7 @@ namespace MapRoutingLogic
         }
 
 
-
-
-        public  Result Dijkstra(Map graph)
+        public  void Dijkstra(Map graph)
         {
             int nodesCount = graph.Intersections.Count();
             result.Distances = new double[nodesCount];
@@ -67,7 +65,7 @@ namespace MapRoutingLogic
                 foreach (Road road in graph.Roads[currentNode])
                 {
                     int neighbor = road.DestinationIntersection;
-                    double newDistance = currentDistance + road.Time;
+                    double newDistance = currentDistance + road.Length;
 
                     if (newDistance < result.Distances[neighbor])
                     {
@@ -77,8 +75,6 @@ namespace MapRoutingLogic
                     }
                 }
             }
-
-            return result;
         }
 
         public (int,double) GetBestEndNode()
@@ -100,53 +96,39 @@ namespace MapRoutingLogic
             return (bestEnd, min);
         }
 
-        public List<int> constructPath(int bestEnd)
+        public List<int>  constructPath(int endNode)
         {
-            int[] parents = result.Parents;
-            var finalPath = new List<int>();
+            var path = new List<int>();
+            if (result.Parents[endNode] == -1)
+                return path; // No path exists
 
-            if (parents[bestEnd] == -1)
-                return null; //no path
-
-            int currentNode = bestEnd;
-            while (currentNode != -1)
+            int current = endNode;
+            while (current != -1)
             {
-                finalPath.Add(currentNode);
-                //currentNode = previousNodes[currentNode];
+                path.Add(current);
+                current = result.Parents[current];
             }
-            //add the first node with its parent = -1
-            finalPath.Add(currentNode);
 
-            finalPath.Reverse();
-            return finalPath;
-
+            path.Reverse(); // Now ordered: StartNode → ... → EndNode
+           // int startNode = path[0]; // First node = StartNode
+            return path;
         }
 
-
-
-
-        /*this function we've taken frim chatGPT together ya shahd if it will help */
-
-        //public static List<int> GetShortestPath(int endNode, int[] previousNodes)
-        //{
-        //    var path = new List<int>();
-        //    if (previousNodes[endNode] == -1)
-        //        return path; // No path exists
-
-        //    int current = endNode;
-        //    while (current != -1)
-        //    {
-        //        path.Add(current);
-        //        current = previousNodes[current];
-        //    }
-
-        //    path.Reverse();
-        //    return path;
-        //}
-
-
-
-
+        public List<int> FinalResult(Map graph)
+        {
+            /*
+               1. path   --> constructPath
+               2. shortestTime -->
+               3. shortest Distance
+               4. TotalWalkingDistance
+               5. TotalvehicleDistance
+                */
+            Dijkstra(graph);
+            var (bestEnd, min) = GetBestEndNode();
+            List<int> l;
+            l=constructPath(bestEnd);
+             return l;
+        }
 
 
     }
