@@ -16,6 +16,7 @@ namespace MapRoutingLogic
 
         public bool IsDynamic { set; get; } = false;
         public void CreateIntersection(Intersection intersection) { Intersections[intersection.ID] = intersection; }
+
         public void CreateRoad(int source, int destination, double length, int speed)
         {
             if (!Roads.ContainsKey(source))

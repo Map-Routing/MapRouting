@@ -15,7 +15,7 @@ namespace MapRoutingLogic
    internal class shortestPath
     {
         //function startpoints endpoints 
-        List<Node> nodes = new List<Node>();
+        List<Intersection> nodes = new List<Intersection>();
         Query query;
 
         Dictionary<int, double> StartNodes = new Dictionary<int, double>();
@@ -29,14 +29,7 @@ namespace MapRoutingLogic
             this.result = new Result();
         }
 
-        //we might need it in testing
-        //public static void Ge
-        //{
-        //    var potentialNodes = new potentialNoads();
-        //    var (StartNodes, EndNodes) = potentialNodes.findValidNodes(nodes, query);
 
-
-        //}
 
 
         public  Result Dijkstra(Map graph)
@@ -107,8 +100,7 @@ namespace MapRoutingLogic
             return (bestEnd, min);
         }
 
-
-        public static List<int> constructPath(int bestEnd)
+        public List<int> constructPath(int bestEnd)
         {
             int[] parents = result.Parents;
             var finalPath = new List<int>();
@@ -120,7 +112,7 @@ namespace MapRoutingLogic
             while (currentNode != -1)
             {
                 finalPath.Add(currentNode);
-                currentNode = previousNodes[currentNode];
+                //currentNode = previousNodes[currentNode];
             }
             //add the first node with its parent = -1
             finalPath.Add(currentNode);
