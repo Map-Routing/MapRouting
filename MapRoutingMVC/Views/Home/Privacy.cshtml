@@ -1,6 +1,10 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Upload Input Folder";
 }
-<h1>@ViewData["Title"]</h1>
-
-<p>Use this page to detail your site's privacy policy.</p>
+<form asp-controller="Files" asp-action="Upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="files" webkitdirectory multiple />
+    <button type="submit">Upload Folder</button>
+</form>

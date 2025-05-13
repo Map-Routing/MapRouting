@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MapRoutingLogic
 {
-    internal class Map
+    public class Map
     {
         public Dictionary<int, Intersection> Intersections {get; } = new Dictionary<int, Intersection>();
         public Dictionary<int, List<Road>> Roads {get; } = new Dictionary<int, List<Road>>();

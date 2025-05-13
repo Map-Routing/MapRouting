@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MapRoutingLogic
 {
-    internal class Road
+    public class Road
     {
         public int SourceIntersection { set; get; }
         public int DestinationIntersection { set; get; }

@@ -6,39 +6,7 @@ using System.Threading.Tasks;
 
 namespace MapRoutingLogic
 {
-    // initially classes from chat-gpt
-    class Node
-    {
-        public int Id { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-
-        public Node(int id, double x, double y)
-        {
-            Id = id;
-            X = x;
-            Y = y;
-        }
-    }
-
-    class Query
-    {
-        public double SourceX { get; set; }
-        public double SourceY { get; set; }
-        public double DestinationX { get; set; }
-        public double DestinationY { get; set; }
-        public double R { get; set; }
-
-        public Query(double sx, double sy, double dx, double dy, double r)
-        {
-            SourceX = sx;
-            SourceY = sy;
-            DestinationX = dx;
-            DestinationY = dy;
-            R = r;
-        }
-    }
-    internal class potentialNoads
+    public class PotentialNoads
     {
         public double euclidean_Distance(double x1, double y1, double x2, double y2)
         {
@@ -46,7 +14,7 @@ namespace MapRoutingLogic
             return distance;
         }
 
-        public (Dictionary<int, double>, Dictionary<int, double>) findValidNodes(List<Node> nodes, Query query)
+        public (Dictionary<int, double>, Dictionary<int, double>) findValidNodes(List<Intersection> nodes, Query query)
         {
             double R_Km = query.R / 1000;
 
@@ -60,7 +28,7 @@ namespace MapRoutingLogic
                     continue;
 
                 double walkingTime = distance / 5;
-                validStartNodes[node.Id] = walkingTime;
+                validStartNodes[node.ID] = walkingTime;
 
             }
 
@@ -71,7 +39,7 @@ namespace MapRoutingLogic
                     continue;
 
                 double walkingTime = distance / 5;
-                validEndNodes[node.Id] = walkingTime;
+                validEndNodes[node.ID] = walkingTime;
 
             }
             return (validStartNodes, validEndNodes);
