@@ -13,6 +13,8 @@ namespace MapRoutingLogic
         public double shortestDistance { get; set; } // km
         public double TotalWalkingDistance { get; set; } // km
         public double TotalVehicleDistance { get; set; } //km
+
+
         public Output()
         {
             IdOfIntersections = new List<int>();

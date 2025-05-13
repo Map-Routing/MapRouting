@@ -174,6 +174,14 @@ namespace MapRoutingLogic
                 5. TotalvehicleDistance
                  */
 
+                var potentialNodes = new potentialNodes();
+                var AllIntersection = testCase.TestMap.Intersections.Values.ToList();
+                var startAndEndNodes = potentialNodes.findValidNodes(AllIntersection, testCase.Queries[i]);
+
+                var shortpath = new shortestPath(startAndEndNodes.Item1,startAndEndNodes.Item2);
+
+                //var OurOutput = shortestPath
+                
                 testCase.Outputs.Add(new Output()
                 {
                     IdOfIntersections = {1,2,3},
