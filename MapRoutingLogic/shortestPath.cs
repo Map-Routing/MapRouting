@@ -63,12 +63,14 @@ namespace MapRoutingLogic
                 if (currentDistance > result.Distances[currentNode])
                     continue;
 
-           
+
                 // relax neighbors
                 foreach (Road road in graph.Roads[currentNode])
                 {
                     int neighbor = road.DestinationIntersection;
-                    double newDistance = currentDistance + road.Time;
+                    //double newDistance = currentDistance + road.Time;
+                    double timeInHours = road.Length / road.Speed;
+                    double newDistance = currentDistance + timeInHours;
 
                     if (newDistance < result.Distances[neighbor])
                     {
@@ -89,7 +91,7 @@ namespace MapRoutingLogic
 
             foreach (var pair in EndNodes)
             {
-                Console.WriteLine($"End node {pair.Key}, Distance: {result.Distances[pair.Key]}, Parent: {result.Parents[pair.Key]}");
+                //Console.WriteLine($"End node {pair.Key}, Distance: {result.Distances[pair.Key]}, Parent: {result.Parents[pair.Key]}");
                 //d[endnode]+walkingTime(value)
                 double total = result.Distances[pair.Key] + pair.Value;
                 if (total < min)
@@ -109,7 +111,7 @@ namespace MapRoutingLogic
             var path = new List<int>();
             if (result.Parents[endNode] == -1)
             {
-                Console.WriteLine($"No path exists to end node {endNode}");
+                //Console.WriteLine($"No path exists to end node {endNode}");
                 return path; // No path exists
             }
 
@@ -143,7 +145,7 @@ namespace MapRoutingLogic
             double totalTime = min * 60; //shortest time
             double totalTimeRounded = Math.Round(totalTime, 2);
             //debugging
-            Console.WriteLine($"Best end selected: {bestEnd}");
+            //Console.WriteLine($"Best end selected: {bestEnd}");
 
             List<int> l;
             l = constructPath(bestEnd);
