@@ -181,15 +181,17 @@ namespace MapRoutingLogic
                 var shortpath = new shortestPath(startAndEndNodes.Item1,startAndEndNodes.Item2);
 
                 //var OurOutput = shortestPath
-                var (list ,totalTime, totalWalkingDistance, totalVehicleDistance) = shortpath.FinalResult(testCase.TestMap);
-
+                shortpath.FinalResult(testCase.TestMap);
+                var FinalResult = shortpath.output;
+                var shortestDistanceRounded = Math.Round(FinalResult.ShortestDistance, 2, MidpointRounding.AwayFromZero);
+                
                 testCase.Outputs.Add(new Output()
                 {
-                    IdOfIntersections = list, 
-                    shortestTime= totalTime,
-                    shortestDistance = (totalWalkingDistance + totalVehicleDistance),
-                    TotalWalkingDistance = totalWalkingDistance,
-                    TotalVehicleDistance = totalVehicleDistance,
+                    IdOfIntersections = FinalResult.List, 
+                    shortestTime= FinalResult.TotalTime,
+                    shortestDistance = (shortestDistanceRounded),
+                    TotalWalkingDistance = FinalResult.TotalWalkingDistance,
+                    TotalVehicleDistance = FinalResult.TotalVehicleDistance,
                 }); // replace it by calling shortest path method
                 
             }

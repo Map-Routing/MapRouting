@@ -13,6 +13,14 @@ namespace MapRoutingLogic
         public double[] Distances { set; get; }
         public int[] Parents { set; get; }
     }
+     public class FinalOutput
+    {
+        public List<int> List  {set; get; }=new();
+        public double TotalTime { set; get; }
+        public double TotalWalkingDistance { set; get; } 
+        public double TotalVehicleDistance { set; get; } 
+        public double ShortestDistance { set; get; } 
+    }
    internal class shortestPath
     {
         //function startpoints endpoints 
@@ -22,12 +30,13 @@ namespace MapRoutingLogic
         Dictionary<int, double> StartNodes = new Dictionary<int, double>();
         Dictionary<int, double> EndNodes = new Dictionary<int, double>();
         Result result;
-
+       public FinalOutput output {  set; get; }
         public shortestPath(Dictionary<int, double> StartNodes, Dictionary<int, double> EndNodes)
         {
             this.StartNodes = StartNodes;
             this.EndNodes = EndNodes;
             this.result = new Result();
+            this.output=new FinalOutput();
         }
 
 
@@ -130,7 +139,7 @@ namespace MapRoutingLogic
             return path;
         }
 
-        public (List<int> path, double totalTime, double totalWalkingDistance, double totalVehicleDistance) FinalResult(Map graph)
+        public void FinalResult(Map graph)
         {
             /*
                1. path   --> constructPath
@@ -142,35 +151,36 @@ namespace MapRoutingLogic
             Dijkstra(graph);
             var (bestEnd, min) = GetBestEndNode();
 
-            double totalTime = min * 60; //shortest time
-            double totalTimeRounded = Math.Round(totalTime, 2);
+            output.TotalTime = Math.Round(min*60, 2);
+ 
             //debugging
             //Console.WriteLine($"Best end selected: {bestEnd}");
 
-            List<int> l;
-            l = constructPath(bestEnd);
-            if (!l.Contains(bestEnd))
-                l.Add(bestEnd);
+           
+            output.List = constructPath(bestEnd);
+            if (!output.List.Contains(bestEnd))
+                output.List.Add(bestEnd);
 
-            double totalWalkingDistance = (EndNodes[bestEnd] * 5) + (StartNodes[l[0]] * 5);
-            double totalWalkingDistanceRounded = Math.Round(totalWalkingDistance, 2);
-            double totalVehicleDistance = 0;
-            for (int i = 0; i < l.Count - 1; i++)
+           output.TotalWalkingDistance = (EndNodes[bestEnd] * 5) + (StartNodes[output.List[0]] * 5);
+            output.TotalVehicleDistance = 0;
+           
+            for (int i = 0; i < output.List.Count - 1; i++)
             {
-                int currentIntersection = l[i];
-                int nextIntersection = l[i + 1];
+                int currentIntersection = output.List[i];
+                int nextIntersection = output.List[i + 1];
 
                 // Find the road between current and next intersections
-                Road connectingRoad = graph.Roads[currentIntersection]
-                    .FirstOrDefault(road => road.DestinationIntersection == nextIntersection);
+                Road connectingRoad = graph.Roads[currentIntersection].FirstOrDefault(road => road.DestinationIntersection == nextIntersection);
 
                 if (connectingRoad != null)
                 {
-                    totalVehicleDistance += connectingRoad.Length;
+                    output.TotalVehicleDistance += connectingRoad.Length;
                 }
             }
-            double totalVehicleDistanceRounded = Math.Round(totalVehicleDistance, 2);
-            return (l, totalTimeRounded, totalWalkingDistanceRounded, totalVehicleDistanceRounded);
+            output.ShortestDistance = output.TotalWalkingDistance + output.TotalVehicleDistance;
+            output.TotalWalkingDistance = Math.Round(output.TotalWalkingDistance, 2);
+            output.TotalVehicleDistance = Math.Round(output.TotalVehicleDistance, 2);
+            output.ShortestDistance= Math.Round(output.ShortestDistance, 2);
         }
 
 
