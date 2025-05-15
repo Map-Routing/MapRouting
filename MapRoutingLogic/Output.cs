@@ -34,8 +34,8 @@ namespace MapRoutingLogic
 
         public  bool Equals(Output ActualOutput, ref string message)
         {
-            int sz1 = ActualOutput.IdOfIntersections.Count();
-            int sz2 = this.IdOfIntersections.Count();
+            int sz1 = ActualOutput.IdOfIntersections.Count;
+            int sz2 = this.IdOfIntersections.Count;
             bool result = true;
             if (sz1 != sz2)
             {

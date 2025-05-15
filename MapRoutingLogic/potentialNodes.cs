@@ -34,14 +34,14 @@ namespace MapRoutingLogic
 
 
                 if (distanceStart <= R_Km)
-                    validStartNodes[intersection.ID] = distanceStart;
+                    validStartNodes[intersection.ID] = distanceStart / 5;
 
                 double destxEnd = intersection.X - queryDestinationX;
                 double destyEnd = intersection.Y - queryDestinationY;
                 double distanceEnd = Math.Sqrt(destxEnd * destxEnd + destyEnd * destyEnd);
 
                 if (distanceEnd <= R_Km)
-                    validEndNodes[intersection.ID] = distanceEnd/5;
+                    validEndNodes[intersection.ID] = distanceEnd / 5;
             }
 
             return (validStartNodes, validEndNodes);

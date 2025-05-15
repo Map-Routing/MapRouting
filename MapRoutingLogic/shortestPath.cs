@@ -42,7 +42,7 @@ namespace MapRoutingLogic
 
         public  void Dijkstra(Map graph)
         {
-            int nodesCount = graph.Intersections.Count();
+            int nodesCount = graph.Intersections.Count;
             result.Distances = new double[nodesCount];
             result.Parents = new int[nodesCount];
 
