@@ -163,7 +163,7 @@ namespace MapRoutingLogic
         public void ClaculateOutput(ref TestCase testCase)
         {
             List<Output> OutputResult = new List<Output>();
-
+           
             for(int i = 0; i < testCase.Queries.Count(); i++)
             {
                 /*
@@ -181,14 +181,17 @@ namespace MapRoutingLogic
                 var shortpath = new shortestPath(startAndEndNodes.Item1,startAndEndNodes.Item2);
 
                 //var OurOutput = shortestPath
+                shortpath.FinalResult(testCase.TestMap);
+                var FinalResult = shortpath.output;
+                var shortestDistanceRounded = Math.Round(FinalResult.ShortestDistance, 2, MidpointRounding.AwayFromZero);
                 
                 testCase.Outputs.Add(new Output()
                 {
-                    IdOfIntersections = {1,2,3},
-                    shortestTime=0,
-                    shortestDistance=0,
-                    TotalWalkingDistance = 0,
-                    TotalVehicleDistance = 0,
+                    IdOfIntersections = FinalResult.List, 
+                    shortestTime= FinalResult.TotalTime,
+                    shortestDistance = (shortestDistanceRounded),
+                    TotalWalkingDistance = FinalResult.TotalWalkingDistance,
+                    TotalVehicleDistance = FinalResult.TotalVehicleDistance,
                 }); // replace it by calling shortest path method
                 
             }
