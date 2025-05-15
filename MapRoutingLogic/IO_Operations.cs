@@ -215,15 +215,6 @@ namespace MapRoutingLogic
             }
         }
 
-        public  void WriteOutputsAsync(List<Output> outputs, string path)
-        {
-            for(int i=0;i>outputs.Count;i++)
-            {
-                string outfile = path + $"output{i + 1}.txt";
-                File.WriteAllText(path, "line");
-
-            }        
-        }
         
         public async void RunTestCases()
         {
