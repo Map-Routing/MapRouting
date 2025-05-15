@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,9 +22,16 @@ namespace MapRoutingLogic
         // evaluate [1] Sample Cases
         public Map LoadMap(string mapfile)
         {
-            string content = String.Join(" ",File.ReadAllLines(mapfile));
-            string[] parts = content.Split(new[] { ' ' },
-                                            StringSplitOptions.RemoveEmptyEntries);
+            var parts = new List<string>();
+            using (var reader = new StreamReader(mapfile))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    var lineParts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    parts.AddRange(lineParts);
+                }
+            }
 
             int numOfInter = int.Parse(parts[0]);
             int idxOfRoads = (numOfInter * 3) + 1;
@@ -31,38 +39,56 @@ namespace MapRoutingLogic
 
             Map map = new Map();
             // fill intersections
-            for (int k = 1; k < idxOfRoads; k += 3)
-            {
-                int Id = int.Parse(parts[k]);
-                double X = double.Parse(parts[k + 1]);
-                double Y = double.Parse(parts[k + 2]);
-                map.CreateIntersection(new Intersection(Id, X, Y));
-            }
 
-            for (int r = idxOfRoads + 1; r < parts.Length; r += 4)
-            {
-                map.CreateRoad(int.Parse(parts[r]),
-                               int.Parse(parts[r + 1]),
-                               double.Parse(parts[r + 2]),
-                               int.Parse(parts[r + 3])
-                    );
-            }
+            Parallel.Invoke(
+                () =>
+                {
+                    for (int k = 1; k < idxOfRoads; k += 3)
+                    {
+                        int Id = int.Parse(parts[k]);
+                        double X = double.Parse(parts[k + 1]);
+                        double Y = double.Parse(parts[k + 2]);
+                        map.CreateIntersection(new Intersection(Id, X, Y));
+                    }
+                },
+                () =>
+                {
+                    for (int r = idxOfRoads + 1; r < parts.Count; r += 4)
+                    {
+                        map.CreateRoad(int.Parse(parts[r]),
+                                       int.Parse(parts[r + 1]),
+                                       double.Parse(parts[r + 2]),
+                                       int.Parse(parts[r + 3])
+                            );
+                    }
+                }
+            );
+
+
             //map.PrintMap();
             return map;
         }
 
         public List<Query> LoadQueries(string queryFile)
         {
-            string content = String.Join(" ", File.ReadAllLines(queryFile));
-            string[] parts = content.Split(new[] { ' ' },
-                                            StringSplitOptions.RemoveEmptyEntries);
-
+            var parts = new List<string>();
+            using (var reader = new StreamReader(queryFile))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    var lineParts = line.Split(new[] { ' ' },
+                                             StringSplitOptions.RemoveEmptyEntries);
+                    parts.AddRange(lineParts);
+                }
+            }
+            // Use parts as is or call ToArray() if needed
             int numOfQueries = int.Parse(parts[0]);
 
 
             List<Query> queries = new List<Query>();
             
-            for (int k = 1; k < parts.Length; k += 5)
+            for (int k = 1; k < parts.Count(); k += 5)
             {
                 queries.Add(new Query(double.Parse(parts[k]),
                                         double.Parse(parts[k + 1]),
@@ -143,44 +169,39 @@ namespace MapRoutingLogic
 
 
         }
-        
-        public void ClaculateOutput(ref TestCase testCase)
-        {
-            List<Output> OutputResult = new List<Output>();
-           
-            for(int i = 0; i < testCase.Queries.Count(); i++)
-            {
-                /*
-                 1. path
-                2. shortestTime
-                3. shortest Distance
-                4. TotalWalkingDistance
-                5. TotalvehicleDistance
-                 */
 
+        public void ClaculateOutput(TestCase testCase)
+        {
+            // Pre-size the list if possible
+            testCase.Outputs = new List<Output>(testCase.Queries.Count);
+
+            // Initialize with nulls to reserve slots
+            for (int i = 0; i < testCase.Queries.Count; i++)
+            {
+                testCase.Outputs.Add(null);
+            }
+
+            Parallel.For(0, testCase.Queries.Count, i =>
+            {
                 var potentialNodes = new potentialNodes();
                 var AllIntersection = testCase.TestMap.Intersections.Values.ToList();
                 var startAndEndNodes = potentialNodes.findValidNodes(AllIntersection, testCase.Queries[i]);
 
-                var shortpath = new shortestPath(startAndEndNodes.Item1,startAndEndNodes.Item2);
-
-                //var OurOutput = shortestPath
+                var shortpath = new shortestPath(startAndEndNodes.Item1, startAndEndNodes.Item2);
                 shortpath.FinalResult(testCase.TestMap);
-                //var FinalResult = ;
-                var shortestDistanceRounded = Math.Round(shortpath.output.ShortestDistance, 2, MidpointRounding.AwayFromZero);
-                
-                testCase.Outputs.Add(new Output()
+
+                var output = new Output()
                 {
-                    IdOfIntersections = shortpath.output.List, 
-                    shortestTime= shortpath.output.TotalTime,
-                    shortestDistance = (shortestDistanceRounded),
+                    IdOfIntersections = shortpath.output.List,
+                    shortestTime = shortpath.output.TotalTime,
+                    shortestDistance = Math.Round(shortpath.output.ShortestDistance, 2, MidpointRounding.AwayFromZero),
                     TotalWalkingDistance = shortpath.output.TotalWalkingDistance,
-                    TotalVehicleDistance = shortpath.output.TotalVehicleDistance,
-                }); 
-                
-            }
+                    TotalVehicleDistance = shortpath.output.TotalVehicleDistance
+                };
 
-
+                // Direct assignment by index - thread-safe!
+                testCase.Outputs[i] = output;
+            });
         }
         public void CompareResult(TestCase testCase)
         {
@@ -254,15 +275,15 @@ namespace MapRoutingLogic
                 List<Query> queryresult = null;
 
                 Parallel.Invoke(
-                    () => {
-                        mapresult = LoadMap(mapfile);
-                    },
-                    () => {
-                        queryresult = LoadQueries(queryfile);
-                    },
-                    () => {
-                        LoadActualOutputs(ref testCase, outputfile, sz);
-                    }
+                    () => 
+                        mapresult = LoadMap(mapfile)
+                    ,
+                    () => 
+                        queryresult = LoadQueries(queryfile)
+                    ,
+                    () => 
+                        LoadActualOutputs(ref testCase, outputfile, sz)
+                    
                 );
 
 
@@ -275,7 +296,7 @@ namespace MapRoutingLogic
                 // Calculate Our Output
                 var watch = System.Diagnostics.Stopwatch.StartNew();
 
-                ClaculateOutput(ref testCase);
+                ClaculateOutput(testCase);
 
                 watch.Stop();
                 testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
