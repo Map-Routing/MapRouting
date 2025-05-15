@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MapRoutingLogic
@@ -24,26 +25,26 @@ namespace MapRoutingLogic
             string[] parts = content.Split(new[] { ' ' },
                                             StringSplitOptions.RemoveEmptyEntries);
 
-            int numOfInter = Convert.ToInt32(parts[0]);
+            int numOfInter = int.Parse(parts[0]);
             int idxOfRoads = (numOfInter * 3) + 1;
-            int numOfRoades = Convert.ToInt32(parts[idxOfRoads]);
+            int numOfRoades = int.Parse(parts[idxOfRoads]);
 
             Map map = new Map();
             // fill intersections
             for (int k = 1; k < idxOfRoads; k += 3)
             {
-                int Id = Convert.ToInt32(parts[k]);
-                double X = Convert.ToDouble(parts[k + 1]);
-                double Y = Convert.ToDouble(parts[k + 2]);
+                int Id = int.Parse(parts[k]);
+                double X = double.Parse(parts[k + 1]);
+                double Y = double.Parse(parts[k + 2]);
                 map.CreateIntersection(new Intersection(Id, X, Y));
             }
 
             for (int r = idxOfRoads + 1; r < parts.Length; r += 4)
             {
-                map.CreateRoad(Convert.ToInt32(parts[r]),
-                               Convert.ToInt32(parts[r + 1]),
-                               Convert.ToDouble(parts[r + 2]),
-                               Convert.ToInt32(parts[r + 3])
+                map.CreateRoad(int.Parse(parts[r]),
+                               int.Parse(parts[r + 1]),
+                               double.Parse(parts[r + 2]),
+                               int.Parse(parts[r + 3])
                     );
             }
             //map.PrintMap();
@@ -56,36 +57,31 @@ namespace MapRoutingLogic
             string[] parts = content.Split(new[] { ' ' },
                                             StringSplitOptions.RemoveEmptyEntries);
 
-            int numOfQueries = Convert.ToInt32(parts[0]);
+            int numOfQueries = int.Parse(parts[0]);
 
 
             List<Query> queries = new List<Query>();
+            
             for (int k = 1; k < parts.Length; k += 5)
             {
-                queries.Add(new Query(  Convert.ToDouble(parts[k]),
-                                        Convert.ToDouble(parts[k + 1]),
-                                        Convert.ToDouble(parts[k + 2]),
-                                        Convert.ToDouble(parts[k + 3]),
-                                        Convert.ToDouble(parts[k + 4])
+                queries.Add(new Query(double.Parse(parts[k]),
+                                        double.Parse(parts[k + 1]),
+                                        double.Parse(parts[k + 2]),
+                                        double.Parse(parts[k + 3]),
+                                        double.Parse(parts[k + 4])
                             ));
             }
 
-            /*FOR DEBUGGING*/
-            //Console.WriteLine("_________Queries________\n");
-            //foreach(var q in queries)
-            //{
-            //    Console.WriteLine(q);
-            //}
-            //Console.WriteLine("\n_________EDN________\n\n");
 
             return queries;
         }
 
         public void LoadActualOutputs(ref TestCase testCase,string OutputFile, int numOfOutputs)
         {
-            List<string> lines = File.ReadLines(OutputFile).ToList();
+            List<string> lines = File.ReadLines(OutputFile).ToList() ;
 
             int sz = lines.Count();
+
             for(int i=0;i<sz-2;)
             {
                 if(string.IsNullOrWhiteSpace(lines[i]))
@@ -101,27 +97,27 @@ namespace MapRoutingLogic
                 Output output = new Output();
                 output.IdOfIntersections = lines[i]
                                                 .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                .Select(x => Convert.ToInt32(x)).ToList();
+                                                .Select(x => int.Parse(x)).ToList();
 
-                output.shortestTime = Convert.ToDouble(
+                output.shortestTime = double.Parse(
                                                         lines[i+1]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
-                output.shortestDistance = Convert.ToDouble(
+                output.shortestDistance = double.Parse(
                                                         lines[i + 2]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
-                output.TotalWalkingDistance = Convert.ToDouble(
+                output.TotalWalkingDistance = double.Parse(
                                                         lines[i + 3]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
                                                       );
 
-                output.TotalVehicleDistance = Convert.ToDouble(
+                output.TotalVehicleDistance = double.Parse(
                                                         lines[i+4]
                                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                                                         .ElementAt(0)
@@ -146,18 +142,6 @@ namespace MapRoutingLogic
                                                       );
 
 
-            // For Debugging
-            //Console.WriteLine("\n___________Start________\n");
-            //foreach (var o in testCase.ActualOutputs)
-            //{
-            //    Console.WriteLine(o);
-                
-            //    Console.WriteLine("**********************");
-            //}
-            //Console.WriteLine($"-------------------------- \n" +
-            //                  $"| Exec with no IO = {testCase.TotalExecNoIO}        \n|" +
-            //                  $"| Exec IO = {testCase.ActualTotalExec}        \n|" +
-            //                  $"---------------------------\n");
         }
         
         public void ClaculateOutput(ref TestCase testCase)
@@ -182,22 +166,20 @@ namespace MapRoutingLogic
 
                 //var OurOutput = shortestPath
                 shortpath.FinalResult(testCase.TestMap);
-                var FinalResult = shortpath.output;
-                var shortestDistanceRounded = Math.Round(FinalResult.ShortestDistance, 2, MidpointRounding.AwayFromZero);
+                //var FinalResult = ;
+                var shortestDistanceRounded = Math.Round(shortpath.output.ShortestDistance, 2, MidpointRounding.AwayFromZero);
                 
                 testCase.Outputs.Add(new Output()
                 {
-                    IdOfIntersections = FinalResult.List, 
-                    shortestTime= FinalResult.TotalTime,
+                    IdOfIntersections = shortpath.output.List, 
+                    shortestTime= shortpath.output.TotalTime,
                     shortestDistance = (shortestDistanceRounded),
-                    TotalWalkingDistance = FinalResult.TotalWalkingDistance,
-                    TotalVehicleDistance = FinalResult.TotalVehicleDistance,
-                }); // replace it by calling shortest path method
+                    TotalWalkingDistance = shortpath.output.TotalWalkingDistance,
+                    TotalVehicleDistance = shortpath.output.TotalVehicleDistance,
+                }); 
                 
             }
 
-            // IO time
-            // time without IO (in for loop)
 
         }
         public void CompareResult(TestCase testCase)
@@ -211,50 +193,84 @@ namespace MapRoutingLogic
             }
         }
         
-        public void RunTestCases()
+        public async void RunTestCases()
         {
-            string sampleCases = @"[1] Sample Cases\";
-            string Medium = @"[2] Medium Cases\";
-            string Large = @"[3] Large Cases\";
-
+            string sampleCasesInput = @"[1] Sample Cases\Input\";
+            string sampleCasesOutput = @"[1] Sample Cases\Output\";
+            string MediumInput = @"[2] Medium Cases\Input\";
+            string MediumOutput = @"[2] Medium Cases\Output\";
+            string LargeInput = @"[3] Large Cases\Input\";
+            string LargeOutput = @"[3] Large Cases\Output\";
+            
             string InputFolder = @"..\..\..\TEST CASES\";
-            Console.WriteLine($"Choose Number of TestCases \n{sampleCases}\n{Medium}\n{Large}");
+            string OutputFolder = @"..\..\..\TEST CASES\";
+            Console.WriteLine($"Choose Number of TestCases \n[1] Sample Cases\n[2] Medium Cases\n[3] Large Cases");
 
             string choice = Console.ReadLine() ;
-            
+            int sz = 1;
+            string[] filename =new string[3];
             switch (choice)
             {
                 case "1":
-                    InputFolder += sampleCases;
-                    break;
+                    InputFolder += sampleCasesInput;
+                    OutputFolder += sampleCasesOutput;
+                    sz = 5;
+                    filename[0] = "map";
+                    filename[1] = "queries";
+                    filename[2] = "output";
+                    break; 
                 case "2":
-                    InputFolder += Medium;
+                    InputFolder += MediumInput;
+                    OutputFolder += MediumOutput;
+                    sz = 1;
+                    filename[0] = "OLMap";
+                    filename[1] = "OLQueries";
+                    filename[2] = "OLOutput";
                     break;
                 case "3":
-                    InputFolder += Large;
+                    InputFolder += LargeInput;
+                    OutputFolder += LargeOutput;
+                    sz = 1;
+                    filename[0] = "SFMap";
+                    filename[1] = "SFQueries";
+                    filename[2] = "SFOutput";
                     break;
 
                 default: return;
             }
-            var mapPathes = Directory.EnumerateFiles(InputFolder, "*ap*.*", SearchOption.AllDirectories).ToList();
-            var queryPathes = Directory.EnumerateFiles(InputFolder, "*ries*.*", SearchOption.AllDirectories).ToList();
-            var OutputPathes = Directory.EnumerateFiles(InputFolder, "*utput*.*", SearchOption.AllDirectories).ToList();
-            
+
             List< TestCase> TestCases = new List<TestCase>();
-            for(int i=0;i<mapPathes.Count();i++)
+            for(int i=1;i<=sz;i++)
             {
                 var watchWithIO = System.Diagnostics.Stopwatch.StartNew();
 
                 TestCase testCase = new TestCase();
-                // map of test case
-                testCase.TestMap = LoadMap(mapPathes[i]);
+                // map of test case                    
 
-                // queires of test case;
+                string mapfile = (choice == "1") ? InputFolder + $"{filename[0]}{i}.txt" : InputFolder + $"{filename[0]}.txt";
+                string queryfile = (choice == "1") ? InputFolder + $"{filename[1]}{i}.txt" : InputFolder + $"{filename[1]}.txt";
+                string outputfile = (choice == "1") ? OutputFolder + $"{filename[2]}{i}.txt" : OutputFolder + $"{filename[2]}.txt";
+                Map mapresult = null;
+                List<Query> queryresult = null;
 
-                testCase.Queries = LoadQueries(queryPathes[i]);
+                Parallel.Invoke(
+                    () => {
+                        mapresult = LoadMap(mapfile);
+                    },
+                    () => {
+                        queryresult = LoadQueries(queryfile);
+                    },
+                    () => {
+                        LoadActualOutputs(ref testCase, outputfile, sz);
+                    }
+                );
 
-                // actual outputs 
-                LoadActualOutputs(ref testCase,OutputPathes[i], testCase.Queries.Count());
+
+
+                testCase.TestMap = mapresult;
+                testCase.Queries = queryresult;
+
+
 
                 // Calculate Our Output
                 var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -263,15 +279,17 @@ namespace MapRoutingLogic
 
                 watch.Stop();
                 testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
-                Console.WriteLine("Execution Time = "+testCase.TotalExecNoIO);
+                Console.WriteLine("Execution Time = "+testCase.TotalExecNoIO+ " And the Acutal is "+ testCase.ActualTotalExecNoIO);
 
                 watchWithIO.Stop();
                 testCase.TotalExec = watchWithIO.ElapsedMilliseconds;
                 
-                Console.WriteLine("Execution Time With IO = "+testCase.TotalExec);
+                Console.WriteLine("Execution Time With IO = "+testCase.TotalExec + " And the Acutal is " + testCase.ActualTotalExec);
 
 
                 CompareResult(testCase);
+
+                Console.WriteLine("ALL IS DONE");
 
             }
         }
