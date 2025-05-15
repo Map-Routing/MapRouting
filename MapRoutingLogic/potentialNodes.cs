@@ -18,31 +18,34 @@ namespace MapRoutingLogic
         {
             double R_Km = query.R / 1000;
 
-            Dictionary<int, double> validStartNodes = new Dictionary<int, double>();
-            Dictionary<int, double> validEndNodes = new Dictionary<int, double>();
+            var validStartNodes = new Dictionary<int, double>();
+            var validEndNodes = new Dictionary<int, double>();
 
-            foreach (var node in nodes)
+            double querySourceX = query.SourceX;
+            double querySourceY = query.SourceY;
+            double queryDestinationX = query.DestinationX;
+            double queryDestinationY = query.DestinationY;
+
+            foreach (var intersection in nodes)
             {
-                double distance = euclidean_Distance(query.SourceX, query.SourceY, node.X, node.Y);
-                if (distance > R_Km)
-                    continue;
+                double destxStart = intersection.X - querySourceX;
+                double destyStart = intersection.Y - querySourceY;
+                double distanceStart = Math.Sqrt(destxStart * destxStart + destyStart * destyStart);
 
-                double walkingTime = distance / 5;
-                validStartNodes[node.ID] = walkingTime;
 
+                if (distanceStart <= R_Km)
+                    validStartNodes[intersection.ID] = distanceStart;
+
+                double destxEnd = intersection.X - queryDestinationX;
+                double destyEnd = intersection.Y - queryDestinationY;
+                double distanceEnd = Math.Sqrt(destxEnd * destxEnd + destyEnd * destyEnd);
+
+                if (distanceEnd <= R_Km)
+                    validEndNodes[intersection.ID] = distanceEnd/5;
             }
 
-            foreach (var node in nodes)
-            {
-                double distance = euclidean_Distance(query.DestinationX, query.DestinationY, node.X, node.Y);
-                if (distance > R_Km)
-                    continue;
-
-                double walkingTime = distance / 5;
-                validEndNodes[node.ID] = walkingTime;
-
-            }
             return (validStartNodes, validEndNodes);
+
         }
     }
 }
