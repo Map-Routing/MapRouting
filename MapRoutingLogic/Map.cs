@@ -94,23 +94,23 @@ namespace MapRoutingLogic
             return result;
         }
         */
-        public void PrintMap()
-        {
-            foreach (var intersection in Intersections)
-            {
-                Console.WriteLine($"Intersection {intersection.Key} at ({intersection.Value.X}, {intersection.Value.Y}):");
+        //public void PrintMap()
+        //{
+        //    foreach (var intersection in Intersections)
+        //    {
+        //        Console.WriteLine($"Intersection {intersection.Key} at ({intersection.Value.X}, {intersection.Value.Y}):");
 
-                if (Roads.ContainsKey(intersection.Key))
-                {
-                    foreach (var road in Roads[intersection.Key])
-                    {
-                        Console.WriteLine($"  Connected to {road.DestinationIntersection} (time: {road.Time:F3} minutes)");
-                    }
-                }
+        //        if (Roads.ContainsKey(intersection.Key))
+        //        {
+        //            foreach (var road in Roads[intersection.Key])
+        //            {
+        //                Console.WriteLine($"  Connected to {road.DestinationIntersection} (time: {road.Time:F3} minutes)");
+        //            }
+        //        }
 
-                Console.WriteLine();
-            }
+        //        Console.WriteLine();
+        //    }
 
-        }
+        //}
     }
 }

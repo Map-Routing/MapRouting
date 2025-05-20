@@ -27,24 +27,26 @@ namespace MapRoutingLogic
             double queryDestinationX = query.DestinationX;
             double queryDestinationY = query.DestinationY;
 
-
-
             foreach (var intersection in nodes)
             {
-                double destxStart = intersection.X - querySourceX;
-                double destyStart = intersection.Y - querySourceY;
+                double intersectionX = intersection.X;
+                double intersectionY = intersection.Y;
+                int intersectionID = intersection.ID;
+
+                double destxStart = intersectionX - querySourceX;
+                double destyStart = intersectionY - querySourceY;
                 double distanceStart = Math.Sqrt(destxStart * destxStart + destyStart * destyStart);
 
 
                 if (distanceStart <= R_Km)
-                    validStartNodes[intersection.ID] = distanceStart / 5;
+                    validStartNodes[intersectionID] = distanceStart / 5;
 
-                double destxEnd = intersection.X - queryDestinationX;
-                double destyEnd = intersection.Y - queryDestinationY;
+                double destxEnd = intersectionX - queryDestinationX;
+                double destyEnd = intersectionY - queryDestinationY;
                 double distanceEnd = Math.Sqrt(destxEnd * destxEnd + destyEnd * destyEnd);
 
                 if (distanceEnd <= R_Km)
-                    validEndNodes[intersection.ID] = distanceEnd / 5;
+                    validEndNodes[intersectionID] = distanceEnd / 5;
             }
 
             return (validStartNodes, validEndNodes);
