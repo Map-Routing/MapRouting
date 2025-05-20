@@ -40,34 +40,23 @@ namespace MapRoutingLogic
             int numOfRoades = int.Parse(parts[idxOfRoads]);
 
             Map map = new Map();
-            // fill intersections
+            // fill 
+            for (int k = 1; k < idxOfRoads; k += 3)
+            {
+                int Id = int.Parse(parts[k]);
+                double X = double.Parse(parts[k + 1]);
+                double Y = double.Parse(parts[k + 2]);
+                map.CreateIntersection(new Intersection(Id, X, Y));
+            }
+            for (int r = idxOfRoads + 1; r < parts.Count; r += 4)
+            {
+                map.CreateRoad(int.Parse(parts[r]),
+                                int.Parse(parts[r + 1]),
+                                double.Parse(parts[r + 2]),
+                                int.Parse(parts[r + 3])
+                    );
+            }
 
-            Parallel.Invoke(
-                () =>
-                {
-                    for (int k = 1; k < idxOfRoads; k += 3)
-                    {
-                        int Id = int.Parse(parts[k]);
-                        double X = double.Parse(parts[k + 1]);
-                        double Y = double.Parse(parts[k + 2]);
-                        map.CreateIntersection(new Intersection(Id, X, Y));
-                    }
-                },
-                () =>
-                {
-                    for (int r = idxOfRoads + 1; r < parts.Count; r += 4)
-                    {
-                        map.CreateRoad(int.Parse(parts[r]),
-                                       int.Parse(parts[r + 1]),
-                                       double.Parse(parts[r + 2]),
-                                       int.Parse(parts[r + 3])
-                            );
-                    }
-                }
-            );
-
-
-            //map.PrintMap();
             return map;
         }
 
@@ -90,7 +79,8 @@ namespace MapRoutingLogic
 
             List<Query> queries = new List<Query>();
             
-            for (int k = 1; k < parts.Count; k += 5)
+            int partsCount = parts.Count;
+            for (int k = 1; k < partsCount; k += 5)
             {
                 queries.Add(new Query(double.Parse(parts[k]),
                                         double.Parse(parts[k + 1]),
@@ -107,36 +97,65 @@ namespace MapRoutingLogic
 
         public void ClaculateOutput(TestCase testCase)
         {
+            int queriesCount = testCase.Queries.Count;
             // Pre-size the list if possible
-            testCase.Outputs = new List<Output>(testCase.Queries.Count);
+            testCase.Outputs = new List<Output>(queriesCount);
+
 
             // Initialize with nulls to reserve slots
-            for (int i = 0; i < testCase.Queries.Count; i++)
+            for (int i = 0; i < queriesCount; i++)
             {
                 testCase.Outputs.Add(null);
             }
-
-            Parallel.For(0, testCase.Queries.Count, i =>
+            bool parallelize = queriesCount >= 1000;
+            if (parallelize)
             {
-                var potentialNodes = new potentialNodes();
-                var AllIntersection = testCase.TestMap.Intersections.Values.ToList();
-                var startAndEndNodes = potentialNodes.findValidNodes(AllIntersection, testCase.Queries[i]);
-
-                var shortpath = new shortestPath(startAndEndNodes.Item1, startAndEndNodes.Item2);
-                shortpath.FinalResult(testCase.TestMap);
-
-                var output = new Output()
+                Parallel.For(0, queriesCount, i =>
                 {
-                    IdOfIntersections = shortpath.output.List,
-                    shortestTime = shortpath.output.TotalTime,
-                    shortestDistance = Math.Round(shortpath.output.ShortestDistance, 2, MidpointRounding.AwayFromZero),
-                    TotalWalkingDistance = shortpath.output.TotalWalkingDistance,
-                    TotalVehicleDistance = shortpath.output.TotalVehicleDistance
-                };
+                    var potentialNodes = new potentialNodes();
+                    var AllIntersection = testCase.TestMap.Intersections.Values.ToList();
+                    var startAndEndNodes = potentialNodes.findValidNodes(AllIntersection, testCase.Queries[i]);
 
-                // Direct assignment by index - thread-safe!
-                testCase.Outputs[i] = output;
-            });
+                    var shortpath = new shortestPath(startAndEndNodes.Item1, startAndEndNodes.Item2);
+                    shortpath.FinalResult(testCase.TestMap);
+
+                    var output = new Output()
+                    {
+                        IdOfIntersections = shortpath.output.List,
+                        shortestTime = shortpath.output.TotalTime,
+                        shortestDistance = shortpath.output.ShortestDistance,
+                        TotalWalkingDistance = shortpath.output.TotalWalkingDistance,
+                        TotalVehicleDistance = shortpath.output.TotalVehicleDistance
+                    };
+
+                    // Direct assignment by index - thread-safe!
+                    testCase.Outputs[i] = output;
+                });
+            }
+            else
+            {
+                for (int i = 0; i < queriesCount; i++)
+                {
+                    var potentialNodes = new potentialNodes();
+                    var AllIntersection = testCase.TestMap.Intersections.Values.ToList();
+                    var startAndEndNodes = potentialNodes.findValidNodes(AllIntersection, testCase.Queries[i]);
+
+                    var shortpath = new shortestPath(startAndEndNodes.Item1, startAndEndNodes.Item2);
+                    shortpath.FinalResult(testCase.TestMap);
+
+                    var output = new Output()
+                    {
+                        IdOfIntersections = shortpath.output.List,
+                        shortestTime = shortpath.output.TotalTime,
+                        shortestDistance = shortpath.output.ShortestDistance,
+                        TotalWalkingDistance = shortpath.output.TotalWalkingDistance,
+                        TotalVehicleDistance = shortpath.output.TotalVehicleDistance
+                    };
+
+                    
+                    testCase.Outputs[i] = output;
+                }
+            }
         }
 
         
@@ -201,7 +220,6 @@ namespace MapRoutingLogic
                 numOfTestCase = int.Parse(Console.ReadLine());
             }
 
-            var watchWithIO = System.Diagnostics.Stopwatch.StartNew();
 
             DirectoryInfo di = Directory.CreateDirectory(outPath);
 
@@ -218,6 +236,8 @@ namespace MapRoutingLogic
                 queryfile = InputFolder + $"{filename[1]}{numOfTestCase}.txt";
             }
 
+            var watchWithIO = System.Diagnostics.Stopwatch.StartNew();
+
             testCase.TestMap = LoadMap(mapfile);
 
             testCase.Queries = LoadQueries(queryfile);
@@ -232,22 +252,20 @@ namespace MapRoutingLogic
             string outfile = Path.Combine(outPath, $"output{numOfTestCase}.txt");
 
             File.WriteAllText(outfile, "");
-            NumberFormatInfo setPrecision = new NumberFormatInfo();
-            setPrecision.NumberDecimalDigits = 2;
 
-            for (int k = 0; k < testCase.Outputs.Count; k++)
+            int outputsCount = testCase.Outputs.Count;
+            for (int k = 0; k < outputsCount; k++)
 
             {
                 File.AppendAllText(outfile,$"{string.Join(' ', testCase.Outputs[k].IdOfIntersections)}" +
                     $"\n" +
-                    $"{testCase.Outputs[k].shortestTime.ToString("N",setPrecision)} mins" +
+                    $"{testCase.Outputs[k].shortestTime:F} mins" +
                     $"\n" +
-                    $"{testCase.Outputs[k].shortestDistance.ToString("N", setPrecision)} km" +
+                    $"{testCase.Outputs[k].shortestDistance:F} km" +
                     $"\n" +
-                    $"{testCase.Outputs[k].TotalWalkingDistance.ToString("N", setPrecision)} km" +
+                    $"{testCase.Outputs[k].TotalWalkingDistance:F} km" +
                     $"\n" +
-                    $"{testCase.Outputs[k].TotalVehicleDistance.ToString("N", setPrecision)} km" +
-
+                    $"{testCase.Outputs[k].TotalVehicleDistance:F} km" +
                     $"\n\n");
 
             }
