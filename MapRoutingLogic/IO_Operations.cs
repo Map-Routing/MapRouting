@@ -306,6 +306,9 @@ namespace MapRoutingLogic
                 ClaculateOutput(testCase);
 
                 watch.Stop();
+
+                CompareResult(testCase);
+
                 testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
                 Console.WriteLine("Execution Time = "+testCase.TotalExecNoIO+ " And the Acutal is "+ testCase.ActualTotalExecNoIO);
 
@@ -334,9 +337,7 @@ namespace MapRoutingLogic
                     $"{testCase.TotalExec} ms");
 
 
-                CompareResult(testCase);
-
-                Console.WriteLine("ALL IS DONE");
+                Console.WriteLine("\nALL IS DONE\n");
 
             }
         }
