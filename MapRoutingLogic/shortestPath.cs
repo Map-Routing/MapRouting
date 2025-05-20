@@ -52,24 +52,23 @@ namespace MapRoutingLogic
                 result.Parents[i] = -1;
             }
 
-            var priorityQueue = new PriorityQueue<(int node, double distance), double>();
+            var priorityQueue = new PriorityQueue<int, double>();
             foreach (var pair in StartNodes)
             {
                 //in queue add the start nodes with their walking time as the distances
                 result.Distances[pair.Key] = pair.Value;
-                priorityQueue.Enqueue((pair.Key, pair.Value), pair.Value);
+                priorityQueue.Enqueue(pair.Key, pair.Value);
             }
 
 
-            while (priorityQueue.Count > 0)
+            while (priorityQueue.TryDequeue(out int currentNode, out _))
             {
-                var current = priorityQueue.Dequeue();
+              //  var current = priorityQueue.Dequeue();
                 //take the current distance from the current node in the queue
-                double currentDistance = current.distance;
-                int currentNode = current.node;
+                double currentDistance = result.Distances[currentNode];
 
                 //if current > distance of node so skip
-                if (currentDistance > result.Distances[currentNode])
+                if (currentDistance == double.PositiveInfinity)
                     continue;
 
 
@@ -85,7 +84,7 @@ namespace MapRoutingLogic
                     {
                         result.Distances[neighbor] = newDistance;
                         result.Parents[neighbor] = currentNode;
-                        priorityQueue.Enqueue((neighbor, newDistance), newDistance);
+                        priorityQueue.Enqueue(neighbor, newDistance);
                     }
                 }
             }

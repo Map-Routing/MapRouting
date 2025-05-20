@@ -28,7 +28,8 @@ namespace MapRoutingLogic
             Roads[destination].Add(new Road(destination, source, length, speed));
 
         }
-
+        /*
+         * Existed for historical reason. These two methods are no longer in use.
         public List<int> BFS(int startIntersection)
         {
             if (!Intersections.ContainsKey(startIntersection))
@@ -92,6 +93,7 @@ namespace MapRoutingLogic
             }
             return result;
         }
+        */
         public void PrintMap()
         {
             foreach (var intersection in Intersections)
