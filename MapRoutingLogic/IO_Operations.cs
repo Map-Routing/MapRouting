@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
@@ -103,73 +104,6 @@ namespace MapRoutingLogic
             return queries;
         }
 
-        public void LoadActualOutputs(ref TestCase testCase,string OutputFile, int numOfOutputs)
-        {
-            List<string> lines = File.ReadLines(OutputFile).ToList() ;
-
-            int sz = lines.Count;
-
-            for(int i=0;i<sz-2;)
-            {
-                if(string.IsNullOrWhiteSpace(lines[i]))
-                {
-                    i++;
-                    continue;
-                }
-                if (lines[i].Contains("ms"))
-                {
-                    break;
-                }
-
-                Output output = new Output();
-                output.IdOfIntersections = lines[i]
-                                                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                .Select(x => int.Parse(x)).ToList();
-
-                output.shortestTime = double.Parse(
-                                                        lines[i+1]
-                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                        .ElementAt(0)
-                                                      );
-
-                output.shortestDistance = double.Parse(
-                                                        lines[i + 2]
-                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                        .ElementAt(0)
-                                                      );
-
-                output.TotalWalkingDistance = double.Parse(
-                                                        lines[i + 3]
-                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                        .ElementAt(0)
-                                                      );
-
-                output.TotalVehicleDistance = double.Parse(
-                                                        lines[i+4]
-                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                        .ElementAt(0)
-                                                      );
-
-                i = i + 5;
-                testCase.ActualOutputs.Add(output);
-            }
-
-
-            testCase.ActualTotalExecNoIO = Convert.ToDouble(
-                                                        lines[sz - 3]
-                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                        .ElementAt(0)
-                                                      );
-
-
-            testCase.ActualTotalExec = Convert.ToDouble(
-                                                        lines[sz - 1]
-                                                        .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                        .ElementAt(0)
-                                                      );
-
-
-        }
 
         public void ClaculateOutput(TestCase testCase)
         {
@@ -204,30 +138,19 @@ namespace MapRoutingLogic
                 testCase.Outputs[i] = output;
             });
         }
-        public void CompareResult(TestCase testCase)
-        {
-            int sz = testCase.ActualOutputs.Count;
-            for (int i = 0; i < sz; i++)
-            {
-                string message = "";
-                var result = testCase.Outputs[i].Equals(testCase.ActualOutputs[i], ref message);
-                Console.WriteLine($"Result of Output {i + 1} = {result}\n{message}\n");
-            }
-        }
 
         
         public async void RunTestCases()
         {
             string sampleCasesInput = @"[1] Sample Cases\Input\";
-            string sampleCasesOutput = @"[1] Sample Cases\Output\";
             string MediumInput = @"[2] Medium Cases\Input\";
-            string MediumOutput = @"[2] Medium Cases\Output\";
             string LargeInput = @"[3] Large Cases\Input\";
-            string LargeOutput = @"[3] Large Cases\Output\";
             
             string InputFolder = @"..\..\..\TEST CASES\";
             string OutputFolder = @"..\..\..\TEST CASES\";
-            Console.WriteLine($"Choose Number of TestCases \n[1] Sample Cases\n[2] Medium Cases\n[3] Large Cases");
+            Console.WriteLine($"Choose Number of TestCases \n[1] Sample Cases\n[2] Medium Cases\n[3] Large Cases\n[4] Enter your own map file and quiries file");
+            string mapfile = "";
+            string queryfile ="";
 
             string choice = Console.ReadLine() ;
             int sz = 1;
@@ -237,7 +160,6 @@ namespace MapRoutingLogic
             {
                 case "1":
                     InputFolder += sampleCasesInput;
-                    OutputFolder += sampleCasesOutput;
                     sz = 5;
                     filename[0] = "map";
                     filename[1] = "queries";
@@ -246,7 +168,6 @@ namespace MapRoutingLogic
                     break; 
                 case "2":
                     InputFolder += MediumInput;
-                    OutputFolder += MediumOutput;
                     sz = 1;
                     filename[0] = "OLMap";
                     filename[1] = "OLQueries";
@@ -255,90 +176,92 @@ namespace MapRoutingLogic
                     break;
                 case "3":
                     InputFolder += LargeInput;
-                    OutputFolder += LargeOutput;
                     sz = 1;
                     filename[0] = "SFMap";
                     filename[1] = "SFQueries";
                     filename[2] = "SFOutput";
                     outPath = @$"..\..\..\Output\[3] Large Cases\";
                     break;
-
+                case "4":
+                    Console.WriteLine("Enter map file path: ");
+                    mapfile = Console.ReadLine();
+                    Console.WriteLine("Enter Query file path: ");
+                    queryfile = Console.ReadLine();
+                    sz = 1;
+                    filename[2] = "Ouput.txt";
+                    outPath = @"..\..\..\Result\";
+                    break;
                 default: return;
             }
-            
+            int numOfTestCase = 1;
+
+            if (sz > 1)
+            {
+                Console.Write($"Enter number of map test from {1} to {sz}: ");
+                numOfTestCase = int.Parse(Console.ReadLine());
+            }
+
+            var watchWithIO = System.Diagnostics.Stopwatch.StartNew();
+
             DirectoryInfo di = Directory.CreateDirectory(outPath);
 
-            for (int i=1;i<=sz;i++)
+            TestCase testCase = new TestCase();
+
+            if(choice != "4")
             {
-                var watchWithIO = System.Diagnostics.Stopwatch.StartNew();
+                mapfile =InputFolder + $"{filename[0]}.txt" ;
+                queryfile = InputFolder + $"{filename[1]}.txt";
+            }
+            else if (sz > 1 && choice != "4")
+            {
+                mapfile = InputFolder + $"{filename[0]}{numOfTestCase}.txt";
+                queryfile = InputFolder + $"{filename[1]}{numOfTestCase}.txt";
+            }
 
-                TestCase testCase = new TestCase();
-                // map of test case                    
+            testCase.TestMap = LoadMap(mapfile);
 
-                string mapfile = (choice == "1") ? InputFolder + $"{filename[0]}{i}.txt" : InputFolder + $"{filename[0]}.txt";
-                string queryfile = (choice == "1") ? InputFolder + $"{filename[1]}{i}.txt" : InputFolder + $"{filename[1]}.txt";
-                string outputfile = (choice == "1") ? OutputFolder + $"{filename[2]}{i}.txt" : OutputFolder + $"{filename[2]}.txt";
-                Map mapresult = null;
-                List<Query> queryresult = null;
+            testCase.Queries = LoadQueries(queryfile);
 
-                Parallel.Invoke(
-                    () => 
-                        mapresult = LoadMap(mapfile)
-                    ,
-                    () => 
-                        queryresult = LoadQueries(queryfile)
-                    ,
-                    () => 
-                        LoadActualOutputs(ref testCase, outputfile, sz)
-                    
-                );
+            // Calculate Our Output
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            ClaculateOutput(testCase);
+            watch.Stop();
 
+            testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
 
+            string outfile = Path.Combine(outPath, $"output{numOfTestCase}.txt");
 
-                testCase.TestMap = mapresult;
-                testCase.Queries = queryresult;
+            File.WriteAllText(outfile, "");
+            NumberFormatInfo setPrecision = new NumberFormatInfo();
+            setPrecision.NumberDecimalDigits = 2;
 
+            for (int k = 0; k < testCase.Outputs.Count; k++)
 
+            {
+                File.AppendAllText(outfile,$"{string.Join(' ', testCase.Outputs[k].IdOfIntersections)}" +
+                    $"\n" +
+                    $"{testCase.Outputs[k].shortestTime.ToString("N",setPrecision)} mins" +
+                    $"\n" +
+                    $"{testCase.Outputs[k].shortestDistance.ToString("N", setPrecision)} km" +
+                    $"\n" +
+                    $"{testCase.Outputs[k].TotalWalkingDistance.ToString("N", setPrecision)} km" +
+                    $"\n" +
+                    $"{testCase.Outputs[k].TotalVehicleDistance.ToString("N", setPrecision)} km" +
 
-                // Calculate Our Output
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-
-                ClaculateOutput(testCase);
-
-                watch.Stop();
-                testCase.TotalExecNoIO = watch.ElapsedMilliseconds;
-                Console.WriteLine("Execution Time = "+testCase.TotalExecNoIO+ " And the Acutal is "+ testCase.ActualTotalExecNoIO);
-
-                watchWithIO.Stop();
-                testCase.TotalExec = watchWithIO.ElapsedMilliseconds;
-                
-                Console.WriteLine("Execution Time With IO = "+testCase.TotalExec + " And the Acutal is " + testCase.ActualTotalExec);
-                string outfile = Path.Combine(outPath, $"output{i}.txt");
-                File.WriteAllText(outfile, "");
-                for (int k = 0; k < testCase.Outputs.Count; k++)
-                {
-                    File.AppendAllText(outfile,$"{string.Join(' ', testCase.Outputs[k].IdOfIntersections)}" +
-                        $"\n" +
-                        $"{testCase.Outputs[k].shortestTime} mins" +
-                        $"\n" +
-                        $"{testCase.Outputs[k].shortestDistance} km" +
-                        $"\n" +
-                        $"{testCase.Outputs[k].TotalWalkingDistance} km" +
-                        $"\n" +
-                        $"{testCase.Outputs[k].TotalVehicleDistance} km" +
-                        $"\n\n");
-
-                }
-                File.AppendAllText(outfile, $"{testCase.TotalExecNoIO} ms" +
-                    $"\n\n" +
-                    $"{testCase.TotalExec} ms");
-
-
-                CompareResult(testCase);
-
-                Console.WriteLine("ALL IS DONE");
+                    $"\n\n");
 
             }
+
+            watchWithIO.Stop();
+            testCase.TotalExec = watchWithIO.ElapsedMilliseconds;
+            File.AppendAllText(outfile, $"{testCase.TotalExecNoIO} ms" +
+                $"\n\n" +
+                $"{testCase.TotalExec} ms");
+
+
+            Console.WriteLine("Execution Time = " + testCase.TotalExecNoIO);
+
+            Console.WriteLine("Execution Time With IO = " + testCase.TotalExec);
         }
 
     }
