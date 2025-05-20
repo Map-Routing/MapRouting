@@ -207,7 +207,7 @@ namespace MapRoutingLogic
 
             TestCase testCase = new TestCase();
 
-            if(choice != "4")
+            if(choice != "4" && sz == 1)
             {
                 mapfile =InputFolder + $"{filename[0]}.txt" ;
                 queryfile = InputFolder + $"{filename[1]}.txt";

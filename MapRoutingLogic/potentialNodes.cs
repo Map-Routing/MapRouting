@@ -27,41 +27,25 @@ namespace MapRoutingLogic
             double queryDestinationX = query.DestinationX;
             double queryDestinationY = query.DestinationY;
 
-            Parallel.For(0, nodes.Count, i =>
+
+
+            foreach (var intersection in nodes)
             {
-                double destxStart = nodes[i].X - querySourceX;
-                double destyStart = nodes[i].Y - querySourceY;
+                double destxStart = intersection.X - querySourceX;
+                double destyStart = intersection.Y - querySourceY;
                 double distanceStart = Math.Sqrt(destxStart * destxStart + destyStart * destyStart);
 
 
                 if (distanceStart <= R_Km)
-                    validStartNodes[nodes[i].ID] = distanceStart / 5;
+                    validStartNodes[intersection.ID] = distanceStart / 5;
 
-                double destxEnd = nodes[i].X - queryDestinationX;
-                double destyEnd = nodes[i].Y - queryDestinationY;
+                double destxEnd = intersection.X - queryDestinationX;
+                double destyEnd = intersection.Y - queryDestinationY;
                 double distanceEnd = Math.Sqrt(destxEnd * destxEnd + destyEnd * destyEnd);
 
                 if (distanceEnd <= R_Km)
-                    validEndNodes[nodes[i].ID] = distanceEnd / 5;
-            });
-
-            //foreach (var intersection in nodes)
-            //{
-            //    double destxStart = intersection.X - querySourceX;
-            //    double destyStart = intersection.Y - querySourceY;
-            //    double distanceStart = Math.Sqrt(destxStart * destxStart + destyStart * destyStart);
-
-
-            //    if (distanceStart <= R_Km)
-            //        validStartNodes[intersection.ID] = distanceStart / 5;
-
-            //    double destxEnd = intersection.X - queryDestinationX;
-            //    double destyEnd = intersection.Y - queryDestinationY;
-            //    double distanceEnd = Math.Sqrt(destxEnd * destxEnd + destyEnd * destyEnd);
-
-            //    if (distanceEnd <= R_Km)
-            //        validEndNodes[intersection.ID] = distanceEnd / 5;
-            //}
+                    validEndNodes[intersection.ID] = distanceEnd / 5;
+            }
 
             return (validStartNodes, validEndNodes);
 
