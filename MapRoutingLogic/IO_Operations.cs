@@ -24,37 +24,29 @@ namespace MapRoutingLogic
         // evaluate [1] Sample Cases
         public Map LoadMap(string mapfile)
         {
-            var parts = new List<string>();
-            using (var reader = new StreamReader(mapfile))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    var lineParts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    parts.AddRange(lineParts);
-                }
-            }
+            string[] lines = File.ReadAllLines(mapfile);
+            int lineIndex = 0;
 
-            int numOfInter = int.Parse(parts[0]);
-            int idxOfRoads = (numOfInter * 3) + 1;
-            int numOfRoades = int.Parse(parts[idxOfRoads]);
 
             Map map = new Map();
-            // fill 
-            for (int k = 1; k < idxOfRoads; k += 3)
+
+            int numberOfIntersections = int.Parse(lines[lineIndex++]);
+
+            for (int i = 0; i < numberOfIntersections; i++)
             {
-                int Id = int.Parse(parts[k]);
-                double X = double.Parse(parts[k + 1]);
-                double Y = double.Parse(parts[k + 2]);
-                map.CreateIntersection(new Intersection(Id, X, Y));
+                string[] line = lines[lineIndex++].Split(' ');
+                map.CreateIntersection(new Intersection(int.Parse(line[0]), double.Parse(line[1]),
+                    double.Parse(line[2])));
             }
-            for (int r = idxOfRoads + 1; r < parts.Count; r += 4)
+
+
+            int numberOfRoads = int.Parse(lines[lineIndex++]);
+
+            for (int i = 0; i < numberOfRoads; i++)
             {
-                map.CreateRoad(int.Parse(parts[r]),
-                                int.Parse(parts[r + 1]),
-                                double.Parse(parts[r + 2]),
-                                int.Parse(parts[r + 3])
-                    );
+                string[] line = lines[lineIndex++].Split(' ');
+                map.CreateRoad(int.Parse(line[0]), int.Parse(line[1]),
+                    double.Parse(line[2]), int.Parse(line[3]));
             }
 
             return map;
